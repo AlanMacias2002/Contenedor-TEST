@@ -1,0 +1,116 @@
+{
+  "name": "odoo-bridge · prueba de humo",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "0840e7f7-c978-4d9a-8327-9290a4684612",
+      "name": "Inicio manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://odoo-bridge:8000/ready",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "2c97cf21-6961-45c1-891f-4a17b7fe665d",
+      "name": "Bridge · ready",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://odoo-bridge:8000/v1/resolver",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"modelos\": [\"PP-24-C6\", \"DS 2CD2143G2 I\", \"UTP6-305AZ\"]}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "40986e3d-db24-4e4b-b0eb-65f7957cc929",
+      "name": "Bridge · resolver",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data.resultados",
+        "options": {}
+      },
+      "id": "86b3cfff-c670-4864-bea1-f93204910c8d",
+      "name": "Un ítem por modelo",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Inicio manual": {
+      "main": [
+        [
+          {
+            "node": "Bridge · ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bridge · ready": {
+      "main": [
+        [
+          {
+            "node": "Bridge · resolver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bridge · resolver": {
+      "main": [
+        [
+          {
+            "node": "Un ítem por modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
