@@ -1,0 +1,6 @@
+# Solo para desarrollo: publica el puerto en la máquina local (nunca en 0.0.0.0).
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  odoo-bridge:
+    ports:
+      - "127.0.0.1:8000:8000"

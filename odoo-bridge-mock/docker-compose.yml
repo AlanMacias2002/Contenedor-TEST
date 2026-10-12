@@ -1,0 +1,15 @@
+# odoo-bridge · esqueleto (mock)
+# Se une a la red Docker donde ya corre n8n; NO publica puertos hacia internet.
+services:
+  odoo-bridge:
+    build: .
+    image: odoo-bridge-mock:0.1.0
+    container_name: odoo-bridge
+    env_file: .env                 # 🔴 contiene las llaves; no se sube a git
+    restart: unless-stopped
+    networks: [n8n-red]
+
+networks:
+  n8n-red:
+    external: true
+    name: ${BRIDGE_RED:-bbinco-net}   # nombre de la red Docker de n8n
