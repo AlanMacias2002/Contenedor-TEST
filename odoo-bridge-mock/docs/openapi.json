@@ -1,0 +1,3662 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "odoo-bridge (esqueleto)",
+    "description": "\n**Esqueleto (mock)** del servicio `odoo-bridge` · contrato **0.1.0**.\n\nTodas las respuestas usan la misma envoltura (`ok`, `modo`, `contrato`, `request_id`, `data` o `error`, `avisos`).\nLos datos son **de ejemplo**: `modo` siempre vale `\"mock\"`.\n\n**Autenticación:** encabezado `X-API-Key`. Tres niveles: `lectura` < `buffer` < `odoo`.\nCada nivel incluye los permisos de los anteriores.\n\n**Escenarios:** encabezado `X-Mock-Escenario` (`error`, `odoo_caido`, `buffer_caido`, `lento`, `falla_job`)\npara probar el manejo de errores del agente. Ver `GET /v1/escenarios`.\n",
+    "version": "0.1.0-mock"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "¿El proceso está vivo? (sin API key)",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Salud_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "¿Responden Odoo y la DB Buffer?",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Preparacion_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/escenarios": {
+      "get": {
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "Escenarios simulados disponibles en el esqueleto",
+        "operationId": "escenarios_v1_escenarios_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/sync/{entidad}": {
+      "post": {
+        "tags": [
+          "Sincronización"
+        ],
+        "summary": "Lanzar una sincronización Odoo → DB Buffer (asíncrona)",
+        "description": "Responde de inmediato con un job_id. Consulta el avance con GET /v1/jobs/{job_id}.",
+        "operationId": "lanzar_sync_v1_sync__entidad__post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "entidad",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "productos",
+                "clientes",
+                "cotizaciones"
+              ],
+              "type": "string",
+              "title": "Entidad"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/SyncEntrada"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Entrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Job_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "Sincronización"
+        ],
+        "summary": "Estado y avance de un trabajo",
+        "operationId": "ver_job_v1_jobs__job_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Job_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/productos/{codigo}": {
+      "get": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Producto por código exacto",
+        "operationId": "producto_por_codigo_v1_productos__codigo__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Codigo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Producto_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/productos/buscar": {
+      "post": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Buscar productos por texto, marca u origen",
+        "operationId": "buscar_v1_productos_buscar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuscarEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_BuscarSalida_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/resolver": {
+      "post": {
+        "tags": [
+          "Resolución"
+        ],
+        "summary": "Resolver modelos de BBINCO contra el catálogo",
+        "description": "Palabras clave del esqueleto: un modelo que contenga **NOEXISTE** devuelve no_encontrado; **AMBIGUO** devuelve candidatos; **PROVEEDOR** se resuelve con un producto de proveedor. El resto se busca en el catálogo de ejemplo.",
+        "operationId": "resolver_v1_resolver_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolverEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_ResolverSalida_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/consultas": {
+      "post": {
+        "tags": [
+          "Consultas"
+        ],
+        "summary": "Lectura genérica sobre modelos permitidos",
+        "description": "Modelos permitidos en el esqueleto: product.category, res.partner, sale.order, uom.uom",
+        "operationId": "consultar_v1_consultas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsultaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_ConsultaSalida_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/equivalencias": {
+      "post": {
+        "tags": [
+          "Resolución"
+        ],
+        "summary": "Guardar la elección de una persona (modelo BBINCO → código Odoo)",
+        "operationId": "crear_equivalencia_v1_equivalencias_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EquivalenciaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Equivalencia_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/altas": {
+      "post": {
+        "tags": [
+          "Altas"
+        ],
+        "summary": "Solicitar el alta de un producto que no existe en el catálogo",
+        "operationId": "crear_alta_v1_altas_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AltaEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Alta_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/altas/{alta_id}": {
+      "get": {
+        "tags": [
+          "Altas"
+        ],
+        "summary": "Estado de una solicitud de alta",
+        "operationId": "ver_alta_v1_altas__alta_id__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alta_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Alta Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Alta_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cotizaciones": {
+      "post": {
+        "tags": [
+          "Cotizaciones (Buffer)"
+        ],
+        "summary": "Crear una cotización en la DB Buffer",
+        "operationId": "crear_v1_cotizaciones_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CotizacionEntrada"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Cotizacion_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/v1/cotizaciones/{referencia}": {
+      "get": {
+        "tags": [
+          "Cotizaciones (Buffer)"
+        ],
+        "summary": "Leer una cotización de la DB Buffer",
+        "operationId": "leer_v1_cotizaciones__referencia__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "referencia",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Referencia"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Cotizacion_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Cotizaciones (Buffer)"
+        ],
+        "summary": "Reemplazar el contenido de una cotización en borrador",
+        "operationId": "reemplazar_v1_cotizaciones__referencia__put",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "referencia",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Referencia"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CotizacionEntrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Cotizacion_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cotizaciones/{referencia}/exportar": {
+      "post": {
+        "tags": [
+          "Cotizaciones (Buffer)"
+        ],
+        "summary": "Simular (dry_run) o exportar la cotización a Odoo",
+        "description": "Paso 1: `dry_run=true` (llave de lectura o superior) devuelve el resumen y un `token_preflight`. Paso 2: tras confirmación humana, `dry_run=false` con ese token (llave de nivel odoo) crea la cotización en Odoo, siempre en borrador.",
+        "operationId": "exportar_v1_cotizaciones__referencia__exportar_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "referencia",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Referencia"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportarEntrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_Union_Preflight__ExportacionResultado__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/odoo/cotizaciones/{folio}": {
+      "get": {
+        "tags": [
+          "Cotizaciones (Odoo)"
+        ],
+        "summary": "Leer una cotización viva en Odoo",
+        "operationId": "leer_odoo_v1_odoo_cotizaciones__folio__get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "folio",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Folio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_CotizacionOdoo_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/odoo/cotizaciones/{folio}/partidas": {
+      "post": {
+        "tags": [
+          "Cotizaciones (Odoo)"
+        ],
+        "summary": "Inyectar partidas en una cotización existente de Odoo",
+        "description": "Misma mecánica de dos pasos que exportar: `dry_run=true` devuelve el plan (agregar / actualizar / solicitar_alta) y un token; `dry_run=false` con el token lo aplica.",
+        "operationId": "inyectar_v1_odoo_cotizaciones__folio__partidas_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "folio",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Folio"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InyeccionEntrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Respuesta_InyeccionResultado_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta la API key o no es válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "La llave no tiene el nivel requerido, o el recurso no está permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Odoo o la DB Buffer no disponibles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccionInyeccion": {
+        "properties": {
+          "accion": {
+            "type": "string",
+            "enum": [
+              "agregar",
+              "actualizar",
+              "solicitar_alta"
+            ],
+            "title": "Accion"
+          },
+          "codigo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "cantidad": {
+            "type": "number",
+            "title": "Cantidad"
+          },
+          "seccion": {
+            "type": "string",
+            "title": "Seccion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "accion",
+          "codigo",
+          "descripcion",
+          "cantidad",
+          "seccion"
+        ],
+        "title": "AccionInyeccion"
+      },
+      "Alta": {
+        "properties": {
+          "modelo_bbinco": {
+            "type": "string",
+            "title": "Modelo Bbinco"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "marca": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marca"
+          },
+          "solicitado_por": {
+            "type": "string",
+            "title": "Solicitado Por"
+          },
+          "cotizacion_referencia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cotizacion Referencia"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "solicitada",
+              "dada_de_alta",
+              "rechazada"
+            ],
+            "title": "Estado"
+          },
+          "creada": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Creada"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo_bbinco",
+          "descripcion",
+          "solicitado_por",
+          "id",
+          "estado",
+          "creada"
+        ],
+        "title": "Alta"
+      },
+      "AltaEntrada": {
+        "properties": {
+          "modelo_bbinco": {
+            "type": "string",
+            "title": "Modelo Bbinco"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "marca": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marca"
+          },
+          "solicitado_por": {
+            "type": "string",
+            "title": "Solicitado Por"
+          },
+          "cotizacion_referencia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cotizacion Referencia"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo_bbinco",
+          "descripcion",
+          "solicitado_por"
+        ],
+        "title": "AltaEntrada"
+      },
+      "Bloqueo": {
+        "properties": {
+          "partida": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Partida"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "mensaje": {
+            "type": "string",
+            "title": "Mensaje"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "mensaje"
+        ],
+        "title": "Bloqueo"
+      },
+      "BuscarEntrada": {
+        "properties": {
+          "texto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Texto",
+            "description": "Busca en código y nombre"
+          },
+          "marca": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marca"
+          },
+          "fuente": {
+            "type": "string",
+            "enum": [
+              "odoo",
+              "proveedores",
+              "todas"
+            ],
+            "title": "Fuente",
+            "default": "todas"
+          },
+          "solo_con_stock": {
+            "type": "boolean",
+            "title": "Solo Con Stock",
+            "default": false
+          },
+          "limite": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Limite",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "title": "BuscarEntrada"
+      },
+      "BuscarSalida": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "productos": {
+            "items": {
+              "$ref": "#/components/schemas/Producto"
+            },
+            "type": "array",
+            "title": "Productos",
+            "description": "Primero inventario propio (Odoo) y después proveedores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "productos"
+        ],
+        "title": "BuscarSalida"
+      },
+      "Candidato": {
+        "properties": {
+          "producto": {
+            "$ref": "#/components/schemas/Producto"
+          },
+          "similitud": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Similitud"
+          }
+        },
+        "type": "object",
+        "required": [
+          "producto",
+          "similitud"
+        ],
+        "title": "Candidato"
+      },
+      "Cliente": {
+        "properties": {
+          "odoo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odoo Id",
+            "description": "id de res.partner si ya se conoce"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nombre"
+        ],
+        "title": "Cliente"
+      },
+      "ConsultaEntrada": {
+        "properties": {
+          "modelo": {
+            "type": "string",
+            "title": "Modelo",
+            "examples": [
+              "res.partner"
+            ]
+          },
+          "dominio": {
+            "items": {},
+            "type": "array",
+            "title": "Dominio",
+            "examples": [
+              [
+                [
+                  "name",
+                  "ilike",
+                  "hotel"
+                ]
+              ]
+            ]
+          },
+          "campos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Campos"
+          },
+          "limite": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Limite",
+            "default": 20
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo"
+        ],
+        "title": "ConsultaEntrada"
+      },
+      "ConsultaSalida": {
+        "properties": {
+          "modelo": {
+            "type": "string",
+            "title": "Modelo"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "registros": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Registros"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo",
+          "total",
+          "registros"
+        ],
+        "title": "ConsultaSalida"
+      },
+      "Cotizacion": {
+        "properties": {
+          "referencia": {
+            "type": "string",
+            "title": "Referencia",
+            "description": "Referencia del buffer, p. ej. BUF-000001"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "borrador",
+              "exportada"
+            ],
+            "title": "Estado"
+          },
+          "cliente": {
+            "$ref": "#/components/schemas/Cliente"
+          },
+          "folio_levantamiento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folio Levantamiento"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda"
+          },
+          "notas": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notas"
+          },
+          "partidas": {
+            "items": {
+              "$ref": "#/components/schemas/Partida"
+            },
+            "type": "array",
+            "title": "Partidas"
+          },
+          "totales": {
+            "$ref": "#/components/schemas/Totales"
+          },
+          "odoo": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odoo",
+            "description": "Folio e id en Odoo cuando ya se exportó"
+          },
+          "creada": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Creada"
+          },
+          "actualizada": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Actualizada"
+          }
+        },
+        "type": "object",
+        "required": [
+          "referencia",
+          "estado",
+          "cliente",
+          "moneda",
+          "partidas",
+          "totales",
+          "creada",
+          "actualizada"
+        ],
+        "title": "Cotizacion"
+      },
+      "CotizacionEntrada": {
+        "properties": {
+          "cliente": {
+            "$ref": "#/components/schemas/Cliente"
+          },
+          "folio_levantamiento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Folio Levantamiento",
+            "examples": [
+              "L000123"
+            ]
+          },
+          "moneda": {
+            "type": "string",
+            "enum": [
+              "MXN",
+              "USD"
+            ],
+            "title": "Moneda",
+            "default": "MXN"
+          },
+          "notas": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notas"
+          },
+          "partidas": {
+            "items": {
+              "$ref": "#/components/schemas/PartidaEntrada"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Partidas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cliente",
+          "partidas"
+        ],
+        "title": "CotizacionEntrada"
+      },
+      "CotizacionOdoo": {
+        "properties": {
+          "folio": {
+            "type": "string",
+            "title": "Folio"
+          },
+          "odoo_id": {
+            "type": "integer",
+            "title": "Odoo Id"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "sent",
+              "sale",
+              "cancel"
+            ],
+            "title": "Estado"
+          },
+          "cliente": {
+            "$ref": "#/components/schemas/Cliente"
+          },
+          "referencia_buffer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referencia Buffer"
+          },
+          "lineas": {
+            "items": {
+              "$ref": "#/components/schemas/LineaOdoo"
+            },
+            "type": "array",
+            "title": "Lineas"
+          },
+          "total_sin_impuestos": {
+            "type": "number",
+            "title": "Total Sin Impuestos"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda"
+          },
+          "extras": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extras"
+          }
+        },
+        "type": "object",
+        "required": [
+          "folio",
+          "odoo_id",
+          "estado",
+          "cliente",
+          "lineas",
+          "total_sin_impuestos",
+          "moneda"
+        ],
+        "title": "CotizacionOdoo"
+      },
+      "Equivalencia": {
+        "properties": {
+          "modelo_bbinco": {
+            "type": "string",
+            "title": "Modelo Bbinco"
+          },
+          "codigo_odoo": {
+            "type": "string",
+            "title": "Codigo Odoo"
+          },
+          "confirmado_por": {
+            "type": "string",
+            "title": "Confirmado Por",
+            "description": "Persona que eligió el candidato"
+          },
+          "cotizacion_referencia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cotizacion Referencia"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "modelo_normalizado": {
+            "type": "string",
+            "title": "Modelo Normalizado"
+          },
+          "creada": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Creada"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo_bbinco",
+          "codigo_odoo",
+          "confirmado_por",
+          "id",
+          "modelo_normalizado",
+          "creada"
+        ],
+        "title": "Equivalencia"
+      },
+      "EquivalenciaEntrada": {
+        "properties": {
+          "modelo_bbinco": {
+            "type": "string",
+            "title": "Modelo Bbinco"
+          },
+          "codigo_odoo": {
+            "type": "string",
+            "title": "Codigo Odoo"
+          },
+          "confirmado_por": {
+            "type": "string",
+            "title": "Confirmado Por",
+            "description": "Persona que eligió el candidato"
+          },
+          "cotizacion_referencia": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cotizacion Referencia"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo_bbinco",
+          "codigo_odoo",
+          "confirmado_por"
+        ],
+        "title": "EquivalenciaEntrada"
+      },
+      "ErrorDetalle": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "title": "Codigo",
+            "description": "Código estable, p. ej. PRODUCTO_NO_ENCONTRADO"
+          },
+          "mensaje": {
+            "type": "string",
+            "title": "Mensaje",
+            "description": "Explicación legible, en español"
+          },
+          "detalle": {
+            "title": "Detalle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "mensaje"
+        ],
+        "title": "ErrorDetalle"
+      },
+      "ExportacionResultado": {
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "const": false,
+            "title": "Dry Run",
+            "default": false
+          },
+          "referencia": {
+            "type": "string",
+            "title": "Referencia"
+          },
+          "folio_odoo": {
+            "type": "string",
+            "title": "Folio Odoo"
+          },
+          "odoo_id": {
+            "type": "integer",
+            "title": "Odoo Id"
+          },
+          "estado_odoo": {
+            "type": "string",
+            "const": "draft",
+            "title": "Estado Odoo",
+            "description": "Siempre borrador (regla R-06)",
+            "default": "draft"
+          },
+          "ya_existia": {
+            "type": "boolean",
+            "title": "Ya Existia",
+            "description": "True si la cotización ya se había exportado (idempotencia)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "referencia",
+          "folio_odoo",
+          "odoo_id",
+          "ya_existia"
+        ],
+        "title": "ExportacionResultado"
+      },
+      "ExportarEntrada": {
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run",
+            "description": "True = solo simula (preflight). La escritura real exige False + token_preflight",
+            "default": true
+          },
+          "token_preflight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Preflight"
+          }
+        },
+        "type": "object",
+        "title": "ExportarEntrada"
+      },
+      "InyeccionEntrada": {
+        "properties": {
+          "partidas": {
+            "items": {
+              "$ref": "#/components/schemas/PartidaEntrada"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Partidas"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run",
+            "default": true
+          },
+          "token_preflight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Preflight"
+          }
+        },
+        "type": "object",
+        "required": [
+          "partidas"
+        ],
+        "title": "InyeccionEntrada"
+      },
+      "InyeccionResultado": {
+        "properties": {
+          "folio": {
+            "type": "string",
+            "title": "Folio"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run"
+          },
+          "acciones": {
+            "items": {
+              "$ref": "#/components/schemas/AccionInyeccion"
+            },
+            "type": "array",
+            "title": "Acciones"
+          },
+          "token_preflight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Preflight"
+          },
+          "aplicado": {
+            "type": "boolean",
+            "title": "Aplicado",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "folio",
+          "dry_run",
+          "acciones"
+        ],
+        "title": "InyeccionResultado"
+      },
+      "Job": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "entidad": {
+            "type": "string",
+            "enum": [
+              "productos",
+              "clientes",
+              "cotizaciones"
+            ],
+            "title": "Entidad"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "incremental",
+              "completa"
+            ],
+            "title": "Tipo"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "en_cola",
+              "corriendo",
+              "completado",
+              "fallido"
+            ],
+            "title": "Estado"
+          },
+          "lote_actual": {
+            "type": "integer",
+            "title": "Lote Actual"
+          },
+          "lotes_totales": {
+            "type": "integer",
+            "title": "Lotes Totales"
+          },
+          "registros_procesados": {
+            "type": "integer",
+            "title": "Registros Procesados"
+          },
+          "registros_totales": {
+            "type": "integer",
+            "title": "Registros Totales"
+          },
+          "iniciado": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Iniciado"
+          },
+          "terminado": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terminado"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "entidad",
+          "tipo",
+          "estado",
+          "lote_actual",
+          "lotes_totales",
+          "registros_procesados",
+          "registros_totales",
+          "iniciado"
+        ],
+        "title": "Job"
+      },
+      "LineaOdoo": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "seccion",
+              "producto",
+              "nota"
+            ],
+            "title": "Tipo"
+          },
+          "codigo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "cantidad": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cantidad"
+          },
+          "precio_unitario": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio Unitario"
+          },
+          "subtotal": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subtotal"
+          },
+          "extras": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extras"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tipo",
+          "descripcion"
+        ],
+        "title": "LineaOdoo"
+      },
+      "Origen": {
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "odoo",
+              "proveedor"
+            ],
+            "title": "Tipo",
+            "description": "'odoo' = inventario propio de BBINCO"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre",
+            "description": "'BBINCO' o el nombre del proveedor, p. ej. 'Syscom'"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo",
+          "nombre"
+        ],
+        "title": "Origen"
+      },
+      "Partida": {
+        "properties": {
+          "seccion": {
+            "type": "string",
+            "title": "Seccion",
+            "description": "Especialidad o sección, p. ej. 'Voz y datos'"
+          },
+          "modelo_bbinco": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelo Bbinco"
+          },
+          "codigo_odoo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo Odoo",
+            "description": "null = sin producto asociado; se cargará con el modelo escrito"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "cantidad": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Cantidad"
+          },
+          "precio_unitario": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio Unitario",
+            "description": "null bloquea la exportación (regla R-03)"
+          },
+          "flete": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flete",
+            "description": "Nace vacío, nunca en cero (regla ⑧)"
+          },
+          "numero": {
+            "type": "integer",
+            "title": "Numero"
+          },
+          "importe": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Importe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seccion",
+          "descripcion",
+          "cantidad",
+          "numero"
+        ],
+        "title": "Partida"
+      },
+      "PartidaEntrada": {
+        "properties": {
+          "seccion": {
+            "type": "string",
+            "title": "Seccion",
+            "description": "Especialidad o sección, p. ej. 'Voz y datos'"
+          },
+          "modelo_bbinco": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelo Bbinco"
+          },
+          "codigo_odoo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo Odoo",
+            "description": "null = sin producto asociado; se cargará con el modelo escrito"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "cantidad": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Cantidad"
+          },
+          "precio_unitario": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio Unitario",
+            "description": "null bloquea la exportación (regla R-03)"
+          },
+          "flete": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Flete",
+            "description": "Nace vacío, nunca en cero (regla ⑧)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seccion",
+          "descripcion",
+          "cantidad"
+        ],
+        "title": "PartidaEntrada"
+      },
+      "Preflight": {
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "const": true,
+            "title": "Dry Run",
+            "default": true
+          },
+          "listo_para_exportar": {
+            "type": "boolean",
+            "title": "Listo Para Exportar"
+          },
+          "lineas_a_crear": {
+            "type": "integer",
+            "title": "Lineas A Crear",
+            "description": "Partidas + líneas de sección (regla R-01)"
+          },
+          "secciones": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Secciones"
+          },
+          "subtotal": {
+            "type": "number",
+            "title": "Subtotal"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda"
+          },
+          "no_incluye": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "No Incluye",
+            "description": "Lo que el total no contempla (regla R-04)"
+          },
+          "bloqueos": {
+            "items": {
+              "$ref": "#/components/schemas/Bloqueo"
+            },
+            "type": "array",
+            "title": "Bloqueos"
+          },
+          "token_preflight": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Preflight",
+            "description": "Solo si listo_para_exportar"
+          },
+          "token_expira": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Expira"
+          }
+        },
+        "type": "object",
+        "required": [
+          "listo_para_exportar",
+          "lineas_a_crear",
+          "secciones",
+          "subtotal",
+          "moneda",
+          "no_incluye",
+          "bloqueos"
+        ],
+        "title": "Preflight"
+      },
+      "Preparacion": {
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "listo",
+              "degradado"
+            ],
+            "title": "Estado"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "entorno": {
+            "type": "string",
+            "title": "Entorno"
+          },
+          "odoo": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Odoo"
+          },
+          "buffer": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Buffer"
+          },
+          "catalogo_sincronizado": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Catalogo Sincronizado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estado",
+          "version",
+          "entorno",
+          "odoo",
+          "buffer",
+          "catalogo_sincronizado"
+        ],
+        "title": "Preparacion"
+      },
+      "Producto": {
+        "properties": {
+          "odoo_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Odoo Id",
+            "description": "id de product.product; null si solo existe en un proveedor"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo",
+            "description": "Código oficial (default_code en Odoo o SKU del proveedor)"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "marca": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Marca"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "producto",
+              "servicio"
+            ],
+            "title": "Tipo"
+          },
+          "precio_unitario": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio Unitario",
+            "description": "Precio de venta de lista; null si no hay dato"
+          },
+          "costo_unitario": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Costo Unitario",
+            "description": "Costo; null si no hay dato"
+          },
+          "moneda": {
+            "type": "string",
+            "enum": [
+              "MXN",
+              "USD"
+            ],
+            "title": "Moneda",
+            "default": "MXN"
+          },
+          "stock_disponible": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stock Disponible",
+            "description": "null en servicios o si no se conoce"
+          },
+          "unidad": {
+            "type": "string",
+            "title": "Unidad",
+            "default": "Unidades"
+          },
+          "origen": {
+            "$ref": "#/components/schemas/Origen"
+          },
+          "activo": {
+            "type": "boolean",
+            "title": "Activo",
+            "default": true
+          },
+          "actualizado": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actualizado",
+            "description": "Última sincronización de este dato"
+          },
+          "extras": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Extras",
+            "description": "Campos aún no estables"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "nombre",
+          "tipo",
+          "origen"
+        ],
+        "title": "Producto"
+      },
+      "ResolverEntrada": {
+        "properties": {
+          "modelos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Modelos",
+            "examples": [
+              [
+                "CS-PP24-C6",
+                "DS 2CD2143G2 I",
+                "UTP6-305AZ"
+              ]
+            ]
+          },
+          "incluir_proveedores": {
+            "type": "boolean",
+            "title": "Incluir Proveedores",
+            "description": "Buscar también en catálogos de proveedores si no hay coincidencia en Odoo",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelos"
+        ],
+        "title": "ResolverEntrada"
+      },
+      "ResolverSalida": {
+        "properties": {
+          "catalogo_sincronizado": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Catalogo Sincronizado"
+          },
+          "resultados": {
+            "items": {
+              "$ref": "#/components/schemas/ResultadoResolucion"
+            },
+            "type": "array",
+            "title": "Resultados"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalogo_sincronizado",
+          "resultados"
+        ],
+        "title": "ResolverSalida"
+      },
+      "RespuestaError": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": false
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetalle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "error"
+        ],
+        "title": "RespuestaError",
+        "description": "Toda respuesta con error llega dentro de esta envoltura."
+      },
+      "Respuesta_Alta_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Alta"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Alta]"
+      },
+      "Respuesta_BuscarSalida_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BuscarSalida"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[BuscarSalida]"
+      },
+      "Respuesta_ConsultaSalida_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConsultaSalida"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[ConsultaSalida]"
+      },
+      "Respuesta_CotizacionOdoo_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CotizacionOdoo"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[CotizacionOdoo]"
+      },
+      "Respuesta_Cotizacion_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Cotizacion"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Cotizacion]"
+      },
+      "Respuesta_Equivalencia_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Equivalencia"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Equivalencia]"
+      },
+      "Respuesta_InyeccionResultado_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/InyeccionResultado"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[InyeccionResultado]"
+      },
+      "Respuesta_Job_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Job"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Job]"
+      },
+      "Respuesta_Preparacion_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Preparacion"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Preparacion]"
+      },
+      "Respuesta_Producto_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Producto"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Producto]"
+      },
+      "Respuesta_ResolverSalida_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ResolverSalida"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[ResolverSalida]"
+      },
+      "Respuesta_Salud_": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Salud"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Salud]"
+      },
+      "Respuesta_Union_Preflight__ExportacionResultado__": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "modo": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "real"
+            ],
+            "title": "Modo",
+            "description": "'mock' = datos de ejemplo del esqueleto"
+          },
+          "contrato": {
+            "type": "string",
+            "title": "Contrato",
+            "description": "Versión del contrato de la API"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Preflight"
+              },
+              {
+                "$ref": "#/components/schemas/ExportacionResultado"
+              }
+            ],
+            "title": "Data"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos",
+            "description": "Mensajes para el agente que no son errores"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modo",
+          "contrato",
+          "request_id",
+          "data"
+        ],
+        "title": "Respuesta[Union[Preflight, ExportacionResultado]]"
+      },
+      "ResultadoResolucion": {
+        "properties": {
+          "modelo": {
+            "type": "string",
+            "title": "Modelo",
+            "description": "Modelo tal como lo envió el agente"
+          },
+          "modelo_normalizado": {
+            "type": "string",
+            "title": "Modelo Normalizado"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "resuelto",
+              "requiere_confirmacion",
+              "no_encontrado"
+            ],
+            "title": "Estado"
+          },
+          "nivel": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Nivel",
+            "description": "0 exacta · 1 normalizada · 2 sin prefijo · 3 parcial · 4 no encontrado"
+          },
+          "via": {
+            "type": "string",
+            "enum": [
+              "equivalencia",
+              "catalogo",
+              "ninguna"
+            ],
+            "title": "Via"
+          },
+          "aplicar_sin_confirmar": {
+            "type": "boolean",
+            "title": "Aplicar Sin Confirmar",
+            "description": "True solo en niveles 0 y 1 con un único resultado (regla R-05)"
+          },
+          "producto": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Producto"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "candidatos": {
+            "items": {
+              "$ref": "#/components/schemas/Candidato"
+            },
+            "type": "array",
+            "title": "Candidatos"
+          },
+          "salidas_posibles": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "equivalente_registrado",
+                "solicitar_alta",
+                "sin_producto_asociado"
+              ]
+            },
+            "type": "array",
+            "title": "Salidas Posibles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "modelo",
+          "modelo_normalizado",
+          "estado",
+          "nivel",
+          "via",
+          "aplicar_sin_confirmar"
+        ],
+        "title": "ResultadoResolucion"
+      },
+      "Salud": {
+        "properties": {
+          "estado": {
+            "type": "string",
+            "const": "ok",
+            "title": "Estado",
+            "default": "ok"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "Salud"
+      },
+      "SyncEntrada": {
+        "properties": {
+          "completa": {
+            "type": "boolean",
+            "title": "Completa",
+            "description": "True = recarga todo; False = solo cambios desde la última sincronización",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "SyncEntrada"
+      },
+      "Totales": {
+        "properties": {
+          "partidas": {
+            "type": "integer",
+            "title": "Partidas"
+          },
+          "subtotal": {
+            "type": "number",
+            "title": "Subtotal",
+            "description": "Suma de partidas con precio; sin impuestos ni flete"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda"
+          }
+        },
+        "type": "object",
+        "required": [
+          "partidas",
+          "subtotal",
+          "moneda"
+        ],
+        "title": "Totales"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "description": "Llave del bridge: lectura, buffer u odoo",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}
